@@ -69,9 +69,9 @@ class PageRepository implements PageRepositoryInterface
     public function __construct(
         ResourcePage $resource,
         PageFactory $pageFactory,
-        Data\PageInterfaceFactory $dataPageFactory,
+        Data\PageInterface $dataPage,
         PageCollectionFactory $pageCollectionFactory,
-        Data\PageSearchResultsInterfaceFactory $searchResultsFactory,
+        Data\PageSearchResultsInterface $searchResults,
         DataObjectHelper $dataObjectHelper,
         DataObjectProcessor $dataObjectProcessor
     ) {

@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <head>
+        <css src="Cream_AdvancedCms::css/advancedcms_template.css" />
+        <!--<link src="Cream_Orderflow::js/orderflow_scanner.js" />-->
+    </head>
+    <body>
+        <referenceContainer name="content">
+            <block class="Cream\AdvancedCms\Block\Adminhtml\Template" name="cream_advanced_cms_template"/>
+        </referenceContainer>
+    </body>
+</page>
