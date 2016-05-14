@@ -1,44 +1,42 @@
 <?php
-/**
- * Copyright © 2016 Magento. All rights reserved.
- * See COPYING.txt for license details.
- */
+
 namespace Cream\AdvancedCms;
 
 use Cream\AdvancedCms\Api\Data;
-use Cream\AdvancedCms\Api\PageRepositoryInterface;
+use Cream\AdvancedCms\Api\TemplateRepositoryInterface;
 use Magento\Framework\Api\DataObjectHelper;
 use Magento\Framework\Api\SortOrder;
 use Magento\Framework\Exception\CouldNotDeleteException;
 use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Reflection\DataObjectProcessor;
-use Cream\AdvancedCms\Model\ResourceModel\Page as ResourcePage;
-use Cream\AdvancedCms\Model\ResourceModel\Page\CollectionFactory as PageCollectionFactory;
+use Cream\AdvancedCms\Model\ResourceModel\Element as ResourceElement;
+use Cream\AdvancedCms\Model\ResourceModel\Element\CollectionFactory as ElementCollectionFactory;
+use Magento\Store\Model\StoreManagerInterface;
 
 /**
- * Class PageRepository
+ * Class ElementRepository
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
-class PageRepository implements PageRepositoryInterface
+class ElementRepository implements ElementRepositoryInterface
 {
     /**
-     * @var ResourcePage
+     * @var ResourceElement
      */
     protected $resource;
 
     /**
-     * @var PageFactory
+     * @var ElementFactory
      */
-    protected $pageFactory;
+    protected $elementFactory;
 
     /**
-     * @var PageCollectionFactory
+     * @var ElementCollectionFactory
      */
-    protected $pageCollectionFactory;
+    protected $elementCollectionFactory;
 
     /**
-     * @var Data\PageSearchResultsInterfaceFactory
+     * @var Data\ElementSearchResultsInterfaceFactory
      */
     protected $searchResultsFactory;
 
@@ -53,85 +51,85 @@ class PageRepository implements PageRepositoryInterface
     protected $dataObjectProcessor;
 
     /**
-     * @var \Magento\Cms\Api\Data\PageInterfaceFactory
+     * @var \Magento\Cms\Api\Data\ElementInterfaceFactory
      */
-    protected $dataPageFactory;
+    protected $dataElementFactory;
 
     /**
-     * @param ResourcePage $resource
-     * @param PageFactory $pageFactory
-     * @param Data\PageInterfaceFactory $dataPageFactory
-     * @param PageCollectionFactory $pageCollectionFactory
-     * @param Data\PageSearchResultsInterfaceFactory $searchResultsFactory
+     * @param ResourceElement $resource
+     * @param ElementFactory $elementFactory
+     * @param Data\ElementInterfaceFactory $dataElementFactory
+     * @param ElementCollectionFactory $elementCollectionFactory
+     * @param Data\ElementSearchResultsInterfaceFactory $searchResultsFactory
      * @param DataObjectHelper $dataObjectHelper
      * @param DataObjectProcessor $dataObjectProcessor
      */
     public function __construct(
-        ResourcePage $resource,
-        PageFactory $pageFactory,
-        Data\PageInterfaceFactory $dataPageFactory,
-        PageCollectionFactory $pageCollectionFactory,
-        Data\PageSearchResultsInterfaceFactory $searchResultsFactory,
+        ResourceElement $resource,
+        ElementFactory $elementFactory,
+        Data\ElementInterfaceFactory $dataElementFactory,
+        ElementCollectionFactory $elementCollectionFactory,
+        Data\ElementSearchResultsInterfaceFactory $searchResultsFactory,
         DataObjectHelper $dataObjectHelper,
         DataObjectProcessor $dataObjectProcessor
     ) {
         $this->resource = $resource;
-        $this->pageFactory = $pageFactory;
-        $this->pageCollectionFactory = $pageCollectionFactory;
+        $this->elementFactory = $elementFactory;
+        $this->elementCollectionFactory = $elementCollectionFactory;
         $this->searchResultsFactory = $searchResultsFactory;
         $this->dataObjectHelper = $dataObjectHelper;
-        $this->dataPageFactory = $dataPageFactory;
+        $this->dataelementFactory = $dataElementFactory;
         $this->dataObjectProcessor = $dataObjectProcessor;
     }
 
     /**
-     * Save Page data
+     * Save Element data
      *
-     * @param \Magento\Cms\Api\Data\PageInterface $page
-     * @return Page
+     * @param \Cream\AdvancedCms\Api\Data\ElementInterface $element
+     * @return Element
      * @throws CouldNotSaveException
      */
-    public function save(\Cream\AdvancedCms\Api\Data\PageInterface $page)
+    public function save(\Cream\AdvancedCms\Api\Data\ElementInterface $element)
     {
         try {
-            $this->resource->save($page);
+            $this->resource->save($element);
         } catch (\Exception $exception) {
             throw new CouldNotSaveException(__($exception->getMessage()));
         }
-        return $page;
+        return $element;
     }
 
     /**
-     * Load Page data by given Page Identity
+     * Load Element data by given Element Identity
      *
-     * @param string $pageId
-     * @return Page
+     * @param string $elementId
+     * @return Element
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    public function getById($pageId)
+    public function getById($elementId)
     {
-        $page = $this->pageFactory->create();
-        $page->load($pageId);
-        if (!$page->getId()) {
-            throw new NoSuchEntityException(__('CMS Page with id "%1" does not exist.', $pageId));
+        $element = $this->elementFactory->create();
+        $element->load($elementId);
+        if (!$element->getId()) {
+            throw new NoSuchEntityException(__('CMS Element with id "%1" does not exist.', $elementId));
         }
-        return $page;
+        return $element;
     }
 
     /**
-     * Load Page data collection by given search criteria
+     * Load Element data collection by given search criteria
      *
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @SuppressWarnings(PHPMD.NPathComplexity)
      * @param \Magento\Framework\Api\SearchCriteriaInterface $criteria
-     * @return \Cream\AdvancedCms\Model\ResourceModel\Page\Collection
+     * @return \Cream\AdvancedCms\Model\ResourceModel\Element\Collection
      */
     public function getList(\Magento\Framework\Api\SearchCriteriaInterface $criteria)
     {
         $searchResults = $this->searchResultsFactory->create();
         $searchResults->setSearchCriteria($criteria);
 
-        $collection = $this->pageCollectionFactory->create();
+        $collection = $this->elementCollectionFactory->create();
         foreach ($criteria->getFilterGroups() as $filterGroup) {
             foreach ($filterGroup->getFilters() as $filter) {
                 if ($filter->getField() === 'store_id') {
@@ -155,35 +153,35 @@ class PageRepository implements PageRepositoryInterface
         }
         $collection->setCurPage($criteria->getCurrentPage());
         $collection->setPageSize($criteria->getPageSize());
-        $pages = [];
-        /** @var Page $pageModel */
-        foreach ($collection as $pageModel) {
-            $pageData = $this->dataPageFactory->create();
+        $elements = [];
+        /** @var Element $elementModel */
+        foreach ($collection as $elementModel) {
+            $elementData = $this->dataElementFactory->create();
             $this->dataObjectHelper->populateWithArray(
-                $pageData,
-                $pageModel->getData(),
-                'Cream\AdvancedCms\Api\Data\PageInterface'
+                $elementData,
+                $elementModel->getData(),
+                'Cream\AdvancedCms\Api\Data\ElementInterface'
             );
-            $pages[] = $this->dataObjectProcessor->buildOutputDataArray(
-                $pageData,
-                'Cream\AdvancedCms\Api\Data\PageInterface'
+            $elements[] = $this->dataObjectProcessor->buildOutputDataArray(
+                $elementData,
+                'Cream\AdvancedCms\Api\Data\ElementInterface'
             );
         }
-        $searchResults->setItems($pages);
+        $searchResults->setItems($elements);
         return $searchResults;
     }
 
     /**
-     * Delete Page
+     * Delete Element
      *
-     * @param \Cream\AdvancedCms\Api\Data\PageInterface $page
+     * @param \Cream\AdvancedCms\Api\Data\ElementInterface $element
      * @return bool
      * @throws CouldNotDeleteException
      */
-    public function delete(\Cream\AdvancedCms\Api\Data\PageInterface $page)
+    public function delete(\Cream\AdvancedCms\Api\Data\ElementInterface $element)
     {
         try {
-            $this->resource->delete($page);
+            $this->resource->delete($element);
         } catch (\Exception $exception) {
             throw new CouldNotDeleteException(__($exception->getMessage()));
         }
@@ -191,15 +189,15 @@ class PageRepository implements PageRepositoryInterface
     }
 
     /**
-     * Delete Page by given Page Identity
+     * Delete Element by given Element Identity
      *
-     * @param string $pageId
+     * @param string $elementId
      * @return bool
      * @throws CouldNotDeleteException
      * @throws NoSuchEntityException
      */
-    public function deleteById($pageId)
+    public function deleteById($elementId)
     {
-        return $this->delete($this->getById($pageId));
+        return $this->delete($this->getById($elementId));
     }
 }

@@ -11,8 +11,9 @@ interface PageInterface
     /**#@+
      * Constants for keys of data array. Identical to the name of the getter in snake case
      */
-    const CMS_ID                  = 'cms_id';
-    const TEMPLATE_ID             = 'template_id';
+    const ID          = 'entity_id';
+    const CMS_ID      = 'cms_id';
+    const TEMPLATE_ID = 'template_id';
 
     /**#@-*/
 
@@ -22,6 +23,13 @@ interface PageInterface
      * @return int|null
      */
     public function getId();
+
+    /**
+     * Get cms id
+     *
+     * @return int|null
+     */
+    public function getCmsId();
 
     /**
      * Get template id
@@ -39,9 +47,17 @@ interface PageInterface
     public function setId($id);
 
     /**
+     * Set cms id
+     *
+     * @param int $cmsId
+     * @return \Cream\AdvancedCms\Api\Data\PageInterface
+     */
+    public function setCmsId($cmsId);
+
+    /**
      * Set template id
      *
-     * @param string $templateId
+     * @param int $templateId
      * @return \Cream\AdvancedCms\Api\Data\PageInterface
      */
     public function setTemplateId($templateId);

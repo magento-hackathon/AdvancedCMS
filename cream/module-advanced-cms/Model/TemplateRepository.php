@@ -1,44 +1,42 @@
 <?php
-/**
- * Copyright © 2016 Magento. All rights reserved.
- * See COPYING.txt for license details.
- */
+
 namespace Cream\AdvancedCms;
 
 use Cream\AdvancedCms\Api\Data;
-use Cream\AdvancedCms\Api\PageRepositoryInterface;
+use Cream\AdvancedCms\Api\TemplateRepositoryInterface;
 use Magento\Framework\Api\DataObjectHelper;
 use Magento\Framework\Api\SortOrder;
 use Magento\Framework\Exception\CouldNotDeleteException;
 use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Reflection\DataObjectProcessor;
-use Cream\AdvancedCms\Model\ResourceModel\Page as ResourcePage;
-use Cream\AdvancedCms\Model\ResourceModel\Page\CollectionFactory as PageCollectionFactory;
+use Cream\AdvancedCms\Model\ResourceModel\Template as ResourceTemplate;
+use Cream\AdvancedCms\Model\ResourceModel\Template\CollectionFactory as TemplateCollectionFactory;
+use Magento\Store\Model\StoreManagerInterface;
 
 /**
- * Class PageRepository
+ * Class TemplateRepository
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
-class PageRepository implements PageRepositoryInterface
+class TemplateRepository implements TemplateRepositoryInterface
 {
     /**
-     * @var ResourcePage
+     * @var ResourceTemplate
      */
     protected $resource;
 
     /**
-     * @var PageFactory
+     * @var TemplateFactory
      */
-    protected $pageFactory;
+    protected $templateFactory;
 
     /**
-     * @var PageCollectionFactory
+     * @var TemplateCollectionFactory
      */
-    protected $pageCollectionFactory;
+    protected $templateCollectionFactory;
 
     /**
-     * @var Data\PageSearchResultsInterfaceFactory
+     * @var Data\TemplateSearchResultsInterfaceFactory
      */
     protected $searchResultsFactory;
 
@@ -53,85 +51,85 @@ class PageRepository implements PageRepositoryInterface
     protected $dataObjectProcessor;
 
     /**
-     * @var \Magento\Cms\Api\Data\PageInterfaceFactory
+     * @var \Magento\Cms\Api\Data\TemplateInterfaceFactory
      */
-    protected $dataPageFactory;
+    protected $dataTemplateFactory;
 
     /**
-     * @param ResourcePage $resource
-     * @param PageFactory $pageFactory
-     * @param Data\PageInterfaceFactory $dataPageFactory
-     * @param PageCollectionFactory $pageCollectionFactory
-     * @param Data\PageSearchResultsInterfaceFactory $searchResultsFactory
+     * @param ResourceTemplate $resource
+     * @param TemplateFactory $templateFactory
+     * @param Data\TemplateInterfaceFactory $dataTemplateFactory
+     * @param TemplateCollectionFactory $templateCollectionFactory
+     * @param Data\TemplateSearchResultsInterfaceFactory $searchResultsFactory
      * @param DataObjectHelper $dataObjectHelper
      * @param DataObjectProcessor $dataObjectProcessor
      */
     public function __construct(
-        ResourcePage $resource,
-        PageFactory $pageFactory,
-        Data\PageInterfaceFactory $dataPageFactory,
-        PageCollectionFactory $pageCollectionFactory,
-        Data\PageSearchResultsInterfaceFactory $searchResultsFactory,
+        ResourceTemplate $resource,
+        TemplateFactory $templateFactory,
+        Data\TemplateInterfaceFactory $dataTemplateFactory,
+        TemplateCollectionFactory $templateCollectionFactory,
+        Data\TemplateSearchResultsInterfaceFactory $searchResultsFactory,
         DataObjectHelper $dataObjectHelper,
         DataObjectProcessor $dataObjectProcessor
     ) {
         $this->resource = $resource;
-        $this->pageFactory = $pageFactory;
-        $this->pageCollectionFactory = $pageCollectionFactory;
+        $this->templateFactory = $templateFactory;
+        $this->templateCollectionFactory = $templateCollectionFactory;
         $this->searchResultsFactory = $searchResultsFactory;
         $this->dataObjectHelper = $dataObjectHelper;
-        $this->dataPageFactory = $dataPageFactory;
+        $this->datatemplateFactory = $dataTemplateFactory;
         $this->dataObjectProcessor = $dataObjectProcessor;
     }
 
     /**
-     * Save Page data
+     * Save Template data
      *
-     * @param \Magento\Cms\Api\Data\PageInterface $page
-     * @return Page
+     * @param \Cream\AdvancedCms\Api\Data\TemplateInterface $template
+     * @return Template
      * @throws CouldNotSaveException
      */
-    public function save(\Cream\AdvancedCms\Api\Data\PageInterface $page)
+    public function save(\Cream\AdvancedCms\Api\Data\TemplateInterface $template)
     {
         try {
-            $this->resource->save($page);
+            $this->resource->save($template);
         } catch (\Exception $exception) {
             throw new CouldNotSaveException(__($exception->getMessage()));
         }
-        return $page;
+        return $template;
     }
 
     /**
-     * Load Page data by given Page Identity
+     * Load Template data by given Template Identity
      *
-     * @param string $pageId
-     * @return Page
+     * @param string $templateId
+     * @return Template
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    public function getById($pageId)
+    public function getById($templateId)
     {
-        $page = $this->pageFactory->create();
-        $page->load($pageId);
-        if (!$page->getId()) {
-            throw new NoSuchEntityException(__('CMS Page with id "%1" does not exist.', $pageId));
+        $template = $this->templateFactory->create();
+        $template->load($templateId);
+        if (!$template->getId()) {
+            throw new NoSuchEntityException(__('CMS Template with id "%1" does not exist.', $templateId));
         }
-        return $page;
+        return $template;
     }
 
     /**
-     * Load Page data collection by given search criteria
+     * Load Template data collection by given search criteria
      *
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @SuppressWarnings(PHPMD.NPathComplexity)
      * @param \Magento\Framework\Api\SearchCriteriaInterface $criteria
-     * @return \Cream\AdvancedCms\Model\ResourceModel\Page\Collection
+     * @return \Cream\AdvancedCms\Model\ResourceModel\Template\Collection
      */
     public function getList(\Magento\Framework\Api\SearchCriteriaInterface $criteria)
     {
         $searchResults = $this->searchResultsFactory->create();
         $searchResults->setSearchCriteria($criteria);
 
-        $collection = $this->pageCollectionFactory->create();
+        $collection = $this->templateCollectionFactory->create();
         foreach ($criteria->getFilterGroups() as $filterGroup) {
             foreach ($filterGroup->getFilters() as $filter) {
                 if ($filter->getField() === 'store_id') {
@@ -155,35 +153,35 @@ class PageRepository implements PageRepositoryInterface
         }
         $collection->setCurPage($criteria->getCurrentPage());
         $collection->setPageSize($criteria->getPageSize());
-        $pages = [];
-        /** @var Page $pageModel */
-        foreach ($collection as $pageModel) {
-            $pageData = $this->dataPageFactory->create();
+        $templates = [];
+        /** @var Template $templateModel */
+        foreach ($collection as $templateModel) {
+            $templateData = $this->dataTemplateFactory->create();
             $this->dataObjectHelper->populateWithArray(
-                $pageData,
-                $pageModel->getData(),
-                'Cream\AdvancedCms\Api\Data\PageInterface'
+                $templateData,
+                $templateModel->getData(),
+                'Cream\AdvancedCms\Api\Data\TemplateInterface'
             );
-            $pages[] = $this->dataObjectProcessor->buildOutputDataArray(
-                $pageData,
-                'Cream\AdvancedCms\Api\Data\PageInterface'
+            $templates[] = $this->dataObjectProcessor->buildOutputDataArray(
+                $templateData,
+                'Cream\AdvancedCms\Api\Data\TemplateInterface'
             );
         }
-        $searchResults->setItems($pages);
+        $searchResults->setItems($templates);
         return $searchResults;
     }
 
     /**
-     * Delete Page
+     * Delete Template
      *
-     * @param \Cream\AdvancedCms\Api\Data\PageInterface $page
+     * @param \Cream\AdvancedCms\Api\Data\TemplateInterface $template
      * @return bool
      * @throws CouldNotDeleteException
      */
-    public function delete(\Cream\AdvancedCms\Api\Data\PageInterface $page)
+    public function delete(\Cream\AdvancedCms\Api\Data\TemplateInterface $template)
     {
         try {
-            $this->resource->delete($page);
+            $this->resource->delete($template);
         } catch (\Exception $exception) {
             throw new CouldNotDeleteException(__($exception->getMessage()));
         }
@@ -191,15 +189,15 @@ class PageRepository implements PageRepositoryInterface
     }
 
     /**
-     * Delete Page by given Page Identity
+     * Delete Template by given Template Identity
      *
-     * @param string $pageId
+     * @param string $templateId
      * @return bool
      * @throws CouldNotDeleteException
      * @throws NoSuchEntityException
      */
-    public function deleteById($pageId)
+    public function deleteById($templateId)
     {
-        return $this->delete($this->getById($pageId));
+        return $this->delete($this->getById($templateId));
     }
 }
